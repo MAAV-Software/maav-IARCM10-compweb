@@ -1,2 +1,5 @@
-*.egg-info
-/build
+env
+/compweb/test*
+test*
+webapp/.venv
+.DS_Store

@@ -6,8 +6,17 @@
 </head>
 <body>
     <div>
-        Click the button below to send a message!
-        <form action="{{ url_for('send_message') }}?target={{ request.path }}" method="post" enctype="multipart/form-data">
+        Click the button below to start the voice recording!
+        <form action="{{ url_for('record_voice') }}?target={{ request.path }}" method="post" enctype="multipart/form-data">
+            <input type="submit" name="submit" value="Submit">
+        </form>
+
+        <script src="/static/recorder.js"></script>
+
+        <br>
+
+        Click the button below to stop the voice recording!
+        <form action="{{ url_for('stop_recording_voice') }}?target={{ request.path }}" method="post" enctype="multipart/form-data">
             <input type="submit" name="submit" value="Submit">
         </form>
     </div>

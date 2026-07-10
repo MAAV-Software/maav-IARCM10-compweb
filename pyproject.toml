@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=64.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "compweb"
+version = "1.0.0"
+dependencies = [
+    "bs4",
+    "Flask",
+    "Flask-WTF",
+    "html5validator",
+    "pycodestyle",
+    "pydocstyle",
+    "pylint",
+    "requests",
+]
+requires-python = ">=3.12"
+
+[tool.pylint."messages control"]
+disable = ["cyclic-import"]

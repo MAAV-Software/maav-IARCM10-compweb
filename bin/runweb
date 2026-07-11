@@ -4,4 +4,8 @@
 # See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 set -Eeuo pipefail
 
-flask --app compweb --debug run --host 0.0.0.0 --port 8000
+flask --app compweb --debug run \
+  --host 0.0.0.0 \
+  --port 8000 \
+  --cert=192.168.1.19.pem \
+  --key=192.168.1.19-key.pem

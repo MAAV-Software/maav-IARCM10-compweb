@@ -1,5 +1,8 @@
 env
 /compweb/test*
+/compweb/__pycache__
+/compweb/views/__pycache__
+*.pem
 test*
 webapp/.venv
 .DS_Store

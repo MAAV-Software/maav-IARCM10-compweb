@@ -1,15 +1,48 @@
-async function sendMessage() {
-    const response = await fetch("/record", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            message: "hello flask"
-        })
-    });
+let recorder;
+let stream;
 
-    const result = await response.json();
+async function startRecording() {
+    console.log("Start button clicked");
 
-    console.log(result);
+    try {
+        console.log("Requesting microphone...");
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true
+        });
+
+        console.log("Microphone granted:", stream);
+
+        recorder = new MediaRecorder(stream);
+
+        recorder.ondataavailable = async (event) => {
+            await fetch("/record", {
+                method: "POST",
+                headers: {
+                "Content-Type": "application/json"
+            },
+                body: event.data
+            });
+        };
+
+        recorder.start(100); // send chunks every 100ms
+
+        console.log("Recording started");
+
+    } catch (err) {
+        console.error("Microphone error:", err);
+    }
+
+}
+
+function stopRecording() {
+    if (recorder && recorder.state !== "inactive") {
+        recorder.stop();
+    }
+
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+
+    console.log("Recording stopped");
 }

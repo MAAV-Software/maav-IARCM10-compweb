@@ -8,7 +8,18 @@ import json
 from compweb.voice import VoiceManager
 
 maav_IARCM10_compweb_dir = Path(__file__).parent.parent.parent
-master_drone_destination = "192.168.4.1"
+master_drone_destination = "localhost"
+
+VOICE_START_PHRASE = "jarvis start mission"
+VOICE_END_PHRASE = "jarvis terminate mission"
+
+VOICE_START_PHRASE_ALT1 = "jarvis start"
+VOICE_START_PHRASE_ALT2 = "start mission"
+VOICE_START_PHRASE_ALT3 = "start"
+
+VOICE_END_PHRASE_ALT1 = "jarvis start"
+VOICE_END_PHRASE_ALT2 = "start mission"
+VOICE_END_PHRASE_ALT3 = "start"
 
 manager = VoiceManager(
     model_path=Path("webapp/models/vosk-model-small-en-us-0.15")
@@ -143,7 +154,6 @@ def record_voice():
 def analyze_recording():
     context = {}
 
-    print("Here")
     convert_raw_audio_for_vosk()
 
     with open("output.raw", "rb") as f:
@@ -155,10 +165,13 @@ def analyze_recording():
 
             session.feed_audio(data)
 
+    start_cmds = set([VOICE_START_PHRASE, VOICE_START_PHRASE_ALT1, VOICE_START_PHRASE_ALT2, VOICE_END_PHRASE_ALT3])
+    end_cmds = set([VOICE_END_PHRASE, VOICE_END_PHRASE_ALT1, VOICE_END_PHRASE_ALT2, VOICE_END_PHRASE_ALT3])
+
     finalized_message = session.finalize()
     print(finalized_message)
     if finalized_message["matched_command"] is not None:
-        if finalized_message["matched_command"] == "jarvis start mission":
+        if finalized_message["matched_command"] in start_cmds:
             print("Jarvis will start the mission!")
             
             # Most likely will send a message to the master drone who will then do something on that end outside of the app
@@ -170,7 +183,7 @@ def analyze_recording():
                 # send a message
                 message = json.dumps({"message_type": "run_drones"})
                 sock.sendall(message.encode('utf-8'))
-        elif finalized_message["matched_command"] == "jarvis terminate mission":
+        elif finalized_message["matched_command"] in end_cmds:
             print("Jarvis will terminate the mission")
 
             # Most likely will send a message to the master drone who will then do something on that end outside of the app

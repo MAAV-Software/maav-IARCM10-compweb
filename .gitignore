@@ -1,4 +1,5 @@
 env
+/compweb/env
 /compweb/test*
 compweb/__pycache__/
 compweb/views/__pycache__
@@ -7,3 +8,5 @@ test*
 webapp/.venv
 .DS_Store
 **/__pycache__/
+output.raw
+audio_data.webm

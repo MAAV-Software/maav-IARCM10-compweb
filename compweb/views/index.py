@@ -8,7 +8,7 @@ import json
 from compweb.voice import VoiceManager
 
 maav_IARCM10_compweb_dir = Path(__file__).parent.parent.parent
-master_drone_destination = "localhost"
+master_drone_destination = "drone4"
 
 VOICE_START_PHRASE = "jarvis start mission"
 VOICE_END_PHRASE = "jarvis terminate mission"

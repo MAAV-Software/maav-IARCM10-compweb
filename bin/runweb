@@ -4,10 +4,10 @@
 # See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 set -Eeuo pipefail
 
-source compweb/env/bin/activate
+source env/bin/activate
 
 flask --app compweb --debug run \
   --host 0.0.0.0 \
   --port 8000 \
-  --cert=drone2.pem \
-  --key=drone2-key.pem
+  --cert=*.pem \
+  --key=*-key.pem

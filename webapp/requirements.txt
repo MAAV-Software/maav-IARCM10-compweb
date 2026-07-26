@@ -2,3 +2,4 @@ aiohttp>=3.9,<4
 vosk
 sounddevice
 flask
+flask-cors

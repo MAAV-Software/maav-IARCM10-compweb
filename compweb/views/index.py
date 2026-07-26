@@ -24,6 +24,10 @@ def show_index():
     context = {}
     return flask.render_template("index.html", **context)
 
+@compweb.app.route('/api/record', methods=['POST'])
+def api_record():
+    return flask.jsonify({"status": "ok"})
+
 @compweb.app.route('/record/', methods=['POST'])
 def record_voice():
     stop_event.clear()

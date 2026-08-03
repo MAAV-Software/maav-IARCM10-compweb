@@ -4,11 +4,14 @@ import compweb
 import subprocess
 import socket
 import json
+import os
+import time
 
 from compweb.voice import VoiceManager
 
 maav_IARCM10_compweb_dir = Path(__file__).parent.parent.parent
-master_drone_destination = "drone4"
+master_drone_destination = "localhost"
+master_drone_port = 8000
 
 VOICE_START_PHRASE = "jarvis start mission"
 VOICE_END_PHRASE = "jarvis terminate mission"
@@ -150,6 +153,7 @@ def record_voice():
 
     return {"received": len(audio_data)}
 
+
 @compweb.app.route('/analyze/', methods=['POST'])
 def analyze_recording():
     context = {}
@@ -176,24 +180,41 @@ def analyze_recording():
             
             # Most likely will send a message to the master drone who will then do something on that end outside of the app
             
+            # os.system("say 'Jarvis is starting the mission'") # Only works on laptop, need to change to use browser's microphone
+            
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 # connect to the server
-                sock.connect((master_drone_destination, 8000))
+                while True:
+                    try:
+                        sock.connect((master_drone_destination, master_drone_port))
+                        break
+                    except ConnectionRefusedError:
+                        print("Manager not started yet")
+                    time.sleep(0.1)
 
                 # send a message
                 message = json.dumps({"message_type": "run_drones"})
-                sock.sendall(message.encode('utf-8'))
+                sock.sendall((message + "\n").encode("utf-8"))
+
         elif finalized_message["matched_command"] in end_cmds:
             print("Jarvis will terminate the mission")
 
-            # Most likely will send a message to the master drone who will then do something on that end outside of the app
-            # with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            #     # connect to the server
-            #     sock.connect((master_drone_destination, 8000))
+            # os.system("say 'Jarvis is terminating the mission'") # Only works on laptop, need to change to use browser's microphone
 
-            #     # send a message
-            #     message = json.dumps({"message_type": "terminate_drones"})
-            #     sock.sendall(message.encode('utf-8'))
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                # connect to the server
+                while True:
+                    try:
+                        sock.connect((master_drone_destination, master_drone_port))
+                        break
+                    except ConnectionRefusedError:
+                        print("Manager not started yet")
+                    time.sleep(0.1)
+
+                # send a message
+                message = json.dumps({"message_type": "terminate_drones"})
+                sock.sendall((message + "\n").encode("utf-8"))
+
         else:
             print("Unknown matched command")
 

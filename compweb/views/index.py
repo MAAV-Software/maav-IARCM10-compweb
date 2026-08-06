@@ -5,6 +5,7 @@ import subprocess
 import socket
 import json
 import os
+import threading
 import time
 
 from compweb.voice import VoiceManager
@@ -23,6 +24,9 @@ VOICE_START_PHRASE_ALT3 = "start"
 VOICE_END_PHRASE_ALT1 = "jarvis start"
 VOICE_END_PHRASE_ALT2 = "start mission"
 VOICE_END_PHRASE_ALT3 = "start"
+
+speech_message = ""
+speech_lock = threading.Lock()
 
 manager = VoiceManager(
     model_path=Path("webapp/models/vosk-model-small-en-us-0.15")
@@ -153,6 +157,24 @@ def record_voice():
 
     return {"received": len(audio_data)}
 
+def set_speech(text):
+    global speech_message
+
+    with speech_lock:
+        speech_message = text
+
+
+@compweb.app.route("/speak")
+def speak():
+    global speech_message
+
+    with speech_lock:
+        msg = speech_message
+        speech_message = ""   # consume message
+
+    return flask.jsonify({
+        "message": msg
+    })
 
 @compweb.app.route('/analyze/', methods=['POST'])
 def analyze_recording():
@@ -181,11 +203,12 @@ def analyze_recording():
             # Most likely will send a message to the master drone who will then do something on that end outside of the app
             
             # os.system("say 'Jarvis is starting the mission'") # Only works on laptop, need to change to use browser's microphone
-            
+            set_speech("Jarvis is starting the mission")
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 # connect to the server
                 while True:
                     try:
+                        print("Trying to connect")
                         sock.connect((master_drone_destination, master_drone_port))
                         break
                     except ConnectionRefusedError:
@@ -195,11 +218,13 @@ def analyze_recording():
                 # send a message
                 message = json.dumps({"message_type": "run_drones"})
                 sock.sendall((message + "\n").encode("utf-8"))
+            print("Sent command")
 
         elif finalized_message["matched_command"] in end_cmds:
             print("Jarvis will terminate the mission")
 
             # os.system("say 'Jarvis is terminating the mission'") # Only works on laptop, need to change to use browser's microphone
+            set_speech("Jarvis is terminating the mission")
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 # connect to the server

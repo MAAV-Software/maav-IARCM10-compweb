@@ -9,5 +9,5 @@ source env/bin/activate
 flask --app compweb --debug run \
   --host 0.0.0.0 \
   --port 8000 \
-  --cert=192.168.1.19.pem \
-  --key=192.168.1.19-key.pem
+  --cert=*.pem \
+  --key=*-key.pem

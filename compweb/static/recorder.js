@@ -47,23 +47,23 @@ function stopRecording() {
     console.log("Recording stopped");
 }
 
-const pollTimer = setInterval(async () => {
-    const response = await fetch("/speak");
-    const data = await response.json();
+// const pollTimer = setInterval(async () => {
+//     const response = await fetch("/speak");
+//     const data = await response.json();
 
-    if (data.message !== "") {
-        const utterance =
-            new SpeechSynthesisUtterance(data.message);
+//     if (data.message !== "") {
+//         const utterance =
+//             new SpeechSynthesisUtterance(data.message);
 
-        speechSynthesis.speak(utterance);
+//         speechSynthesis.speak(utterance);
 
-        if (data.message === "Jarvis is terminating the mission") {
-            clearInterval(pollTimer);
-        }
+//         if (data.message === "Jarvis is terminating the mission") {
+//             clearInterval(pollTimer);
+//         }
 
-        if(data.message === "Jarvis is starting the mission"){
-            clearInterval(pollTimer);
-        }
-    }
+//         if(data.message === "Jarvis is starting the mission"){
+//             clearInterval(pollTimer);
+//         }
+//     }
 
-}, 500);
+// }, 500);

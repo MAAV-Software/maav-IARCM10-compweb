@@ -14,8 +14,13 @@ maav_IARCM10_compweb_dir = Path(__file__).parent.parent.parent
 master_drone_destination = "localhost"
 master_drone_port = 8000
 
+VOICE_ORBIT_PHRASE = "jarvis start orbit"
 VOICE_START_PHRASE = "jarvis start mission"
 VOICE_END_PHRASE = "jarvis terminate mission"
+
+VOICE_ORBIT_PHRASE_ALT1 = "jarvis orbit"
+VOICE_ORBIT_PHRASE_ALT2 = "start orbit"
+VOICE_ORBIT_PHRASE_ALT3 = "start orbit"
 
 VOICE_START_PHRASE_ALT1 = "jarvis start"
 VOICE_START_PHRASE_ALT2 = "start mission"
@@ -58,6 +63,7 @@ def show_index():
         pass
 
     context = {}
+    context["status"] = ""
     return flask.render_template("index.html", **context)
 
 def handle_msg(message_dict, drone_status):
@@ -157,24 +163,24 @@ def record_voice():
 
     return {"received": len(audio_data)}
 
-def set_speech(text):
-    global speech_message
+# def set_speech(text):
+#     global speech_message
 
-    with speech_lock:
-        speech_message = text
+#     with speech_lock:
+#         speech_message = text
 
 
-@compweb.app.route("/speak")
-def speak():
-    global speech_message
+# @compweb.app.route("/speak")
+# def speak():
+#     global speech_message
 
-    with speech_lock:
-        msg = speech_message
-        speech_message = ""   # consume message
+#     with speech_lock:
+#         msg = speech_message
+#         speech_message = ""   # consume message
 
-    return flask.jsonify({
-        "message": msg
-    })
+#     return flask.jsonify({
+#         "message": msg
+#     })
 
 @compweb.app.route('/analyze/', methods=['POST'])
 def analyze_recording():
@@ -191,6 +197,7 @@ def analyze_recording():
 
             session.feed_audio(data)
 
+    orbit_cmds = set([VOICE_ORBIT_PHRASE, VOICE_ORBIT_PHRASE_ALT1, VOICE_ORBIT_PHRASE_ALT2, VOICE_ORBIT_PHRASE_ALT3])
     start_cmds = set([VOICE_START_PHRASE, VOICE_START_PHRASE_ALT1, VOICE_START_PHRASE_ALT2, VOICE_END_PHRASE_ALT3])
     end_cmds = set([VOICE_END_PHRASE, VOICE_END_PHRASE_ALT1, VOICE_END_PHRASE_ALT2, VOICE_END_PHRASE_ALT3])
 
@@ -203,7 +210,7 @@ def analyze_recording():
             # Most likely will send a message to the master drone who will then do something on that end outside of the app
             
             # os.system("say 'Jarvis is starting the mission'") # Only works on laptop, need to change to use browser's microphone
-            set_speech("Jarvis is starting the mission")
+            # set_speech("Jarvis is starting the mission")
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 # connect to the server
                 while True:
@@ -218,13 +225,33 @@ def analyze_recording():
                 # send a message
                 message = json.dumps({"message_type": "run_drones"})
                 sock.sendall((message + "\n").encode("utf-8"))
-            print("Sent command")
+
+            status = "Jarvis has started the mission!"
+
+        elif finalized_message["matched_command"] in orbit_cmds:
+            print("Jarvis will start orbiting")
+
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                # connect to the server
+                while True:
+                    try:
+                        sock.connect((master_drone_destination, master_drone_port))
+                        break
+                    except ConnectionRefusedError:
+                        print("Manager not started yet")
+                    time.sleep(0.1)
+
+                # send a message
+                message = json.dumps({"message_type": "orbit_drones"})
+                sock.sendall((message + "\n").encode("utf-8"))
+
+            status = "Jarvis will start orbiting!"
 
         elif finalized_message["matched_command"] in end_cmds:
             print("Jarvis will terminate the mission")
 
             # os.system("say 'Jarvis is terminating the mission'") # Only works on laptop, need to change to use browser's microphone
-            set_speech("Jarvis is terminating the mission")
+            # set_speech("Jarvis is terminating the mission")
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                 # connect to the server
@@ -240,8 +267,12 @@ def analyze_recording():
                 message = json.dumps({"message_type": "terminate_drones"})
                 sock.sendall((message + "\n").encode("utf-8"))
 
+            status = "Jarvis has terminated the mission!"
+
         else:
             print("Unknown matched command")
+
+        context["status"] = status
 
     with open("audio_data.webm", "w") as f:
         pass

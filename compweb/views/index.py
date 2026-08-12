@@ -63,6 +63,11 @@ def show_index():
         pass
 
     context = {}
+    instructions = []
+    with open(maav_IARCM10_compweb_dir / "compweb" / "static" / "directions.txt", "r") as f:
+        for line in f:
+            instructions.append(line)
+    context["directions"] = instructions
     context["status"] = ""
     return flask.render_template("index.html", **context)
 
@@ -215,7 +220,6 @@ def analyze_recording():
                 # connect to the server
                 while True:
                     try:
-                        print("Trying to connect")
                         sock.connect((master_drone_destination, master_drone_port))
                         break
                     except ConnectionRefusedError:
@@ -276,4 +280,11 @@ def analyze_recording():
 
     with open("audio_data.webm", "w") as f:
         pass
+
+    instructions = []
+    with open(maav_IARCM10_compweb_dir / "compweb" / "static" / "directions.txt", "r") as f:
+        for line in f:
+            instructions.append(line)
+    context["directions"] = instructions
+    
     return flask.render_template("index.html", **context)
